@@ -73,6 +73,7 @@ function buttonStyle(bg: string, color: string, border: string) {
     fontWeight: 600,
     textDecoration: "none",
     cursor: "pointer",
+    whiteSpace: "nowrap" as const,
   };
 }
 
@@ -127,12 +128,12 @@ function StatCard({
         background: "#0f172a",
         border: `1px solid ${accent}33`,
         borderRadius: 12,
-        padding: "16px 20px",
+        padding: "16px 18px",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      <div style={{ position: "absolute", top: -10, right: -10, fontSize: 60, opacity: 0.05 }}>
+      <div style={{ position: "absolute", top: -10, right: -10, fontSize: 56, opacity: 0.05 }}>
         {icon}
       </div>
 
@@ -171,6 +172,7 @@ function LeadModal({
         justifyContent: "center",
         zIndex: 1000,
         backdropFilter: "blur(4px)",
+        padding: 12,
       }}
       onClick={onClose}
     >
@@ -179,14 +181,15 @@ function LeadModal({
           background: "#0f172a",
           border: "1px solid #1e293b",
           borderRadius: 16,
-          padding: 28,
-          width: 520,
-          maxWidth: "95vw",
+          padding: 22,
+          width: "min(520px, 94vw)",
+          maxHeight: "92vh",
+          overflowY: "auto",
           boxShadow: "0 25px 60px #00000088",
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 20, gap: 12 }}>
           <div>
             <div style={{ fontSize: 18, fontWeight: 800, color: "#f1f5f9" }}>{lead.name}</div>
             <div style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>{lead.area}</div>
@@ -206,7 +209,7 @@ function LeadModal({
           </button>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 20 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 20 }}>
           {lead.contact && (
             <div style={{ background: "#1e293b", borderRadius: 8, padding: "10px 12px" }}>
               <div style={{ fontSize: 10, color: "#64748b", fontWeight: 600 }}>CONTACTO</div>
@@ -226,7 +229,7 @@ function LeadModal({
           {lead.email && (
             <div style={{ background: "#1e293b", borderRadius: 8, padding: "10px 12px", gridColumn: "1 / -1" }}>
               <div style={{ fontSize: 10, color: "#64748b", fontWeight: 600 }}>EMAIL</div>
-              <a href={`mailto:${lead.email}`} style={{ fontSize: 13, color: "#38bdf8", textDecoration: "none" }}>
+              <a href={`mailto:${lead.email}`} style={{ fontSize: 13, color: "#38bdf8", textDecoration: "none", wordBreak: "break-all" }}>
                 {lead.email}
               </a>
             </div>
@@ -265,6 +268,7 @@ function LeadModal({
             placeholder="ej: Llamé, dejé mensaje / Envié email"
             style={{
               width: "100%",
+              boxSizing: "border-box",
               background: "#1e293b",
               border: "1px solid #334155",
               borderRadius: 8,
@@ -284,6 +288,7 @@ function LeadModal({
             placeholder="Agrega notas sobre este lead..."
             style={{
               width: "100%",
+              boxSizing: "border-box",
               background: "#1e293b",
               border: "1px solid #334155",
               borderRadius: 8,
@@ -294,7 +299,7 @@ function LeadModal({
           />
         </div>
 
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", flexWrap: "wrap" }}>
           {lead.phone && (
             <a href={`tel:${lead.phone}`} style={buttonStyle("#0c4a6e", "#38bdf8", "#0284c7")}>
               📞 Llamar
@@ -325,6 +330,7 @@ export default function CRM() {
   const [view, setView] = useState("dashboard");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
+  const [isMobile, setIsMobile] = useState(false);
 
   async function loadLeads() {
     const res = await fetch("/api/sheets", { cache: "no-store" });
@@ -340,6 +346,14 @@ export default function CRM() {
     }, 10000);
 
     return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   function updateLead(id: string, changes: Partial<Lead>) {
@@ -404,35 +418,48 @@ export default function CRM() {
         style={{
           background: "#0f172a",
           borderBottom: "1px solid #1e293b",
-          padding: "14px 24px",
+          padding: isMobile ? "14px 16px" : "14px 24px",
           display: "flex",
-          alignItems: "center",
+          alignItems: isMobile ? "flex-start" : "center",
+          flexDirection: isMobile ? "column" : "row",
           gap: 16,
           position: "sticky",
           top: 0,
           zIndex: 100,
         }}
       >
-        <div
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            style={{
+              width: 36,
+              height: 36,
+              background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
+              borderRadius: 10,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            ❄️
+          </div>
+
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 800 }}>VA Lead Generator</div>
+            <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>HVAC · Florida · CRM</div>
+          </div>
+        </div>
+
+        <nav
           style={{
-            width: 36,
-            height: 36,
-            background: "linear-gradient(135deg,#3b82f6,#8b5cf6)",
-            borderRadius: 10,
+            marginLeft: isMobile ? 0 : "auto",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            gap: 6,
+            width: isMobile ? "100%" : "auto",
+            overflowX: "auto",
+            paddingBottom: isMobile ? 4 : 0,
           }}
         >
-          ❄️
-        </div>
-
-        <div>
-          <div style={{ fontSize: 15, fontWeight: 800 }}>VA Lead Generator</div>
-          <div style={{ fontSize: 10, color: "#64748b", textTransform: "uppercase" }}>HVAC · Florida · CRM</div>
-        </div>
-
-        <nav style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
           {[
             ["dashboard", "📊 Dashboard"],
             ["actions", "⚡ Acciones"],
@@ -450,6 +477,7 @@ export default function CRM() {
                 fontSize: 12,
                 fontWeight: 600,
                 cursor: "pointer",
+                whiteSpace: "nowrap",
               }}
             >
               {label}
@@ -462,15 +490,28 @@ export default function CRM() {
         </nav>
       </header>
 
-      <main style={{ maxWidth: 1240, margin: "0 auto", padding: "28px 24px" }}>
+      <main
+        style={{
+          maxWidth: 1240,
+          margin: "0 auto",
+          padding: isMobile ? "20px 14px" : "28px 24px",
+        }}
+      >
         {view === "dashboard" && (
           <>
-            <h1 style={{ fontSize: 22, fontWeight: 800, margin: 0 }}>Panel General</h1>
+            <h1 style={{ fontSize: isMobile ? 20 : 22, fontWeight: 800, margin: 0 }}>Panel General</h1>
             <p style={{ color: "#64748b", fontSize: 13, marginTop: 4, marginBottom: 24 }}>
               Orlando, Florida · {leads.length} leads totales
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 28 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "repeat(2, minmax(0, 1fr))" : "repeat(auto-fit, minmax(150px, 1fr))",
+                gap: 12,
+                marginBottom: 28,
+              }}
+            >
               <StatCard icon="📞" value={toCall.length} label="Por llamar" accent="#38bdf8" />
               <StatCard icon="✉️" value={toEmail.length} label="Por emailear" accent="#4ade80" />
               <StatCard icon="🔄" value={followUps.length} label="Seguimientos" accent="#facc15" />
@@ -483,12 +524,19 @@ export default function CRM() {
               <StatCard icon="⏳" value={pending} label="Pendientes" accent="#facc15" />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 28 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                gap: 16,
+                marginBottom: 28,
+              }}
+            >
               <div style={chartCardStyle}>
                 <h3 style={chartTitleStyle}>📊 Estado de Leads</h3>
                 <ResponsiveContainer width="100%" height="88%">
                   <PieChart>
-                    <Pie data={statusChartData} dataKey="value" nameKey="name" outerRadius={90} label>
+                    <Pie data={statusChartData} dataKey="value" nameKey="name" outerRadius={isMobile ? 70 : 90} label>
                       {statusChartData.map((entry) => (
                         <Cell key={entry.name} fill={entry.color} />
                       ))}
@@ -511,7 +559,13 @@ export default function CRM() {
               </div>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                gap: 16,
+              }}
+            >
               <LeadList title="📞 LLAMAR HOY" color="#38bdf8" leads={toCall} onSelect={setSelectedLead} />
               <LeadList title="✉️ ENVIAR EMAIL" color="#4ade80" leads={toEmail} onSelect={setSelectedLead} />
               <LeadList title="🔄 SEGUIMIENTO PENDIENTE" color="#facc15" leads={followUps} onSelect={setSelectedLead} />
@@ -537,7 +591,7 @@ export default function CRM() {
           <>
             <h1 style={{ fontSize: 22, fontWeight: 800 }}>📋 Todos los Leads</h1>
 
-            <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+            <div style={{ display: "flex", gap: 10, marginBottom: 16, flexDirection: isMobile ? "column" : "row" }}>
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -572,8 +626,15 @@ export default function CRM() {
               </select>
             </div>
 
-            <div style={{ background: "#0f172a", border: "1px solid #1e293b", borderRadius: 12, overflow: "hidden" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <div
+              style={{
+                background: "#0f172a",
+                border: "1px solid #1e293b",
+                borderRadius: 12,
+                overflowX: "auto",
+              }}
+            >
+              <table style={{ width: "100%", minWidth: 760, borderCollapse: "collapse" }}>
                 <thead style={{ background: "#1e293b" }}>
                   <tr>
                     {["Empresa", "Contacto", "Teléfono", "Email", "Área", "Estado", "Última Acción"].map((h) => (
