@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
-type Lead = { 
+type Lead = {
   id: string;
   name: string;
   contact: string;
@@ -24,8 +24,18 @@ type SavedStatus = {
 async function getGoogleAccessToken(): Promise<string> {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!;
   const rawKey = process.env.GOOGLE_PRIVATE_KEY!;
-  // Vercel escapa los \n — los restauramos
-  const privateKey = rawKey.replace(/\\n/g, "\n");
+
+  // Vercel puede doble-escapar la key de distintas formas — normalizamos todo
+  let privateKey = rawKey
+    .replace(/\\\\n/g, "\n")  // doble-escapado \\n → newline
+    .replace(/\\n/g, "\n")    // simple escapado \n → newline
+    .replace(/\r\n/g, "\n")   // Windows line endings
+    .trim();
+
+  // Si la key no tiene los headers correctos, algo salió mal
+  if (!privateKey.includes("-----BEGIN PRIVATE KEY-----")) {
+    throw new Error("GOOGLE_PRIVATE_KEY mal formateada. Verifica la variable en Vercel.");
+  }
 
   const now = Math.floor(Date.now() / 1000);
 
