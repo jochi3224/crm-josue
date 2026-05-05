@@ -1,7 +1,7 @@
 import crypto from "crypto";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
-type Lead = {
+type Lead = { 
   id: string;
   name: string;
   contact: string;
